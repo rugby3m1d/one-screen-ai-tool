@@ -352,3 +352,10 @@ Possible future improvements:
 - prefer simple implementations
 - avoid unnecessary dependencies
 - maintain clear separation between UI and AI logic
+
+---
+
+# Execution Environment Policy
+
+- Do not run network-dependent commands such as `npm install`, because the execution environment is offline.
+- Always validate behavior for edited content through GitHub Actions CI/CD.
