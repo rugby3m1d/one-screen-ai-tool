@@ -4,6 +4,14 @@ import { FormEvent, useState } from 'react';
 
 type Mode = 'summary' | 'bullets' | 'tasks';
 
+type AgentSuccessResponse = {
+  result: string;
+};
+
+type AgentErrorResponse = {
+  error?: string;
+};
+
 const modes: Array<{ label: string; value: Mode }> = [
   { label: 'summary', value: 'summary' },
   { label: 'bullets', value: 'bullets' },
@@ -14,11 +22,46 @@ export default function Home() {
   const [text, setText] = useState('');
   const [mode, setMode] = useState<Mode>('summary');
   const [result, setResult] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    setResult(`Processed result:\n${text}`);
+    setError('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/agent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ text, mode })
+      });
+
+      const data = (await response.json()) as AgentSuccessResponse | AgentErrorResponse;
+
+      if (!response.ok) {
+        const message = 'error' in data && typeof data.error === 'string' ? data.error : 'Failed to process text.';
+        setError(message);
+        setResult('');
+        return;
+      }
+
+      if (!('result' in data) || typeof data.result !== 'string') {
+        setError('Unexpected API response.');
+        setResult('');
+        return;
+      }
+
+      setResult(data.result);
+    } catch {
+      setError('Network error occurred while calling the API.');
+      setResult('');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -50,6 +93,7 @@ export default function Home() {
                     value={option.value}
                     checked={mode === option.value}
                     onChange={() => setMode(option.value)}
+                    disabled={isLoading}
                   />
                   {option.label}
                 </label>
@@ -57,10 +101,12 @@ export default function Home() {
             </div>
           </fieldset>
 
-          <button type="submit" className="button">
-            Run
+          <button type="submit" className="button" disabled={isLoading}>
+            {isLoading ? 'Running...' : 'Run'}
           </button>
         </form>
+
+        {error ? <p role="alert">Error: {error}</p> : null}
 
         <section className="result" aria-live="polite">
           <h2>Result</h2>
