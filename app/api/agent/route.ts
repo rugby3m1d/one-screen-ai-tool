@@ -9,6 +9,13 @@ type AgentRequestBody = {
 
 type OpenAIResponse = {
   output_text?: string;
+  output?: Array<{
+    type?: string;
+    content?: Array<{
+      type?: string;
+      text?: string;
+    }>;
+  }>;
 };
 
 const modeSet: Set<Mode> = new Set(['summary', 'bullets', 'tasks']);
@@ -57,12 +64,17 @@ const requestAiResult = async (text: string, mode: Mode): Promise<string> => {
   }
 
   const data = (await response.json()) as OpenAIResponse;
+  const fallbackText = data.output
+    ?.flatMap((item) => item.content ?? [])
+    .find((content) => content.type === 'output_text' && typeof content.text === 'string')
+    ?.text;
+  const resultText = typeof data.output_text === 'string' ? data.output_text : fallbackText;
 
-  if (typeof data.output_text !== 'string' || data.output_text.trim().length === 0) {
+  if (typeof resultText !== 'string' || resultText.trim().length === 0) {
     throw new Error('OpenAI API returned an unexpected response.');
   }
 
-  return data.output_text.trim();
+  return resultText.trim();
 };
 
 export async function POST(request: Request) {
