@@ -101,3 +101,24 @@ h1 {
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+
+.voice-input-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.secondary-button {
+  background: #475569;
+}
+
+.secondary-button:hover {
+  background: #334155;
+}
+
+.voice-status {
+  font-size: 13px;
+  color: #334155;
+}
