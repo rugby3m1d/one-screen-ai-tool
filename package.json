@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test:as-is": "node --test tests/as-is.test.mjs"
   },
   "dependencies": {
     "next": "16.0.7",
