@@ -66,20 +66,32 @@ after(async () => {
       return;
     }
 
-    process.kill(-devServer.pid, signal);
+    try {
+      process.kill(-devServer.pid, signal);
+    } catch (error) {
+      if (error.code !== 'ESRCH') {
+        throw error;
+      }
+    }
   };
 
   terminateServer('SIGTERM');
 
+  let forceKillTimer;
+
   await Promise.race([
     once(devServer, 'exit'),
     new Promise((resolve) => {
-      setTimeout(() => {
+      forceKillTimer = setTimeout(() => {
         terminateServer('SIGKILL');
         resolve();
       }, 5_000);
     })
   ]);
+
+  if (forceKillTimer) {
+    clearTimeout(forceKillTimer);
+  }
 });
 
 test('トップ画面に主要UI要素が表示される', async () => {
