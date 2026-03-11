@@ -1,6 +1,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
+import { once } from 'node:events';
 
 const TEST_PORT = 3123;
 const BASE_URL = `http://127.0.0.1:${TEST_PORT}`;
@@ -34,6 +35,7 @@ before(async () => {
     'npm',
     ['run', 'dev', '--', '--hostname', '127.0.0.1', '--port', String(TEST_PORT)],
     {
+      detached: process.platform !== 'win32',
       env: {
         ...process.env,
         OPENAI_API_KEY: ''
@@ -58,17 +60,38 @@ after(async () => {
     return;
   }
 
-  devServer.kill('SIGTERM');
+  const terminateServer = (signal) => {
+    if (process.platform === 'win32' || !devServer.pid) {
+      devServer.kill(signal);
+      return;
+    }
 
-  await new Promise((resolve) => {
-    devServer.on('exit', () => resolve());
-    setTimeout(() => {
-      if (!devServer.killed) {
-        devServer.kill('SIGKILL');
+    try {
+      process.kill(-devServer.pid, signal);
+    } catch (error) {
+      if (error.code !== 'ESRCH') {
+        throw error;
       }
-      resolve();
-    }, 5_000);
-  });
+    }
+  };
+
+  terminateServer('SIGTERM');
+
+  let forceKillTimer;
+
+  await Promise.race([
+    once(devServer, 'exit'),
+    new Promise((resolve) => {
+      forceKillTimer = setTimeout(() => {
+        terminateServer('SIGKILL');
+        resolve();
+      }, 5_000);
+    })
+  ]);
+
+  if (forceKillTimer) {
+    clearTimeout(forceKillTimer);
+  }
 });
 
 test('トップ画面に主要UI要素が表示される', async () => {
