@@ -60,7 +60,9 @@ after(async () => {
     return;
   }
 
-  if (devServer.exitCode !== null || devServer.signalCode !== null) {
+  const hasExited = () => devServer.exitCode !== null || devServer.signalCode !== null;
+
+  if (hasExited()) {
     return;
   }
 
@@ -79,21 +81,34 @@ after(async () => {
     }
   };
 
+  const waitForExit = async (timeoutMs) => {
+    if (hasExited()) {
+      return true;
+    }
+
+    const exited = await Promise.race([
+      once(devServer, 'exit').then(() => true),
+      new Promise((resolve) => {
+        setTimeout(() => resolve(false), timeoutMs);
+      })
+    ]);
+
+    return exited || hasExited();
+  };
+
   terminateServer('SIGTERM');
 
-  await Promise.race([
-    once(devServer, 'exit'),
-    new Promise((resolve) => {
-      setTimeout(resolve, 5_000);
-    })
-  ]);
-
-  if (devServer.exitCode !== null || devServer.signalCode !== null) {
+  if (await waitForExit(5_000)) {
     return;
   }
 
   terminateServer('SIGKILL');
-  await once(devServer, 'exit');
+
+  if (await waitForExit(5_000)) {
+    return;
+  }
+
+  throw new Error('Failed to terminate Next.js dev server during teardown.');
 });
 
 test('トップ画面に主要UI要素が表示される', async () => {
