@@ -56,7 +56,11 @@ before(async () => {
 });
 
 after(async () => {
-  if (!devServer || devServer.killed) {
+  if (!devServer) {
+    return;
+  }
+
+  if (devServer.exitCode !== null || devServer.signalCode !== null) {
     return;
   }
 
@@ -77,21 +81,19 @@ after(async () => {
 
   terminateServer('SIGTERM');
 
-  let forceKillTimer;
-
   await Promise.race([
     once(devServer, 'exit'),
     new Promise((resolve) => {
-      forceKillTimer = setTimeout(() => {
-        terminateServer('SIGKILL');
-        resolve();
-      }, 5_000);
+      setTimeout(resolve, 5_000);
     })
   ]);
 
-  if (forceKillTimer) {
-    clearTimeout(forceKillTimer);
+  if (devServer.exitCode !== null || devServer.signalCode !== null) {
+    return;
   }
+
+  terminateServer('SIGKILL');
+  await once(devServer, 'exit');
 });
 
 test('トップ画面に主要UI要素が表示される', async () => {
