@@ -28,6 +28,20 @@ npm run build
 npm run start
 ```
 
+## As-Isテスト
+
+現状機能の維持確認用に、E2Eに近いAs-Isテストを用意しています。
+
+```bash
+npm run test:as-is
+```
+
+このテストはNext.js開発サーバーを自動起動し、以下を検証します。
+
+- トップ画面の主要UIが表示されること
+- `/api/agent` の入力バリデーション
+- `OPENAI_API_KEY` 未設定時のエラーハンドリング
+
 ## Lint
 
 ```bash
