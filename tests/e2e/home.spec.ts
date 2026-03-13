@@ -18,5 +18,7 @@ test('実行時にAPIエラーが表示される', async ({ page }) => {
   await page.getByLabel('Input text').fill('議事録の要約をお願いします');
   await page.getByRole('button', { name: 'Run' }).click();
 
-  await expect(page.getByRole('alert')).toContainText('AI processing failed. Please try again later.');
+  await expect(page.locator('p[role="alert"]')).toContainText(
+    'AI processing failed. Please try again later.'
+  );
 });
