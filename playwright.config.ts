@@ -22,7 +22,7 @@ export default defineConfig({
     timeout: 120_000,
     reuseExistingServer: !process.env.CI,
     env: {
-      OPENAI_API_KEY: ''
+      OPENAI_API_KEY: process.env.OPENAI_API_KEY ?? ''
     }
   },
   projects: [
