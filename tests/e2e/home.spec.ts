@@ -24,3 +24,32 @@ test('実行時にAPIエラーが表示される', async ({ page }) => {
       .filter({ hasText: 'Error: AI processing failed. Please try again later.' })
   ).toBeVisible();
 });
+
+test('入力内容とモードを送信して結果が表示される', async ({ page }) => {
+  const inputText = '来週の開発タスクを整理してください';
+
+  await page.route('**/api/agent', async (route) => {
+    const requestBody = route.request().postDataJSON();
+
+    expect(requestBody).toEqual({
+      text: inputText,
+      mode: 'tasks'
+    });
+
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        result: '- API仕様を確認する\n- テストを追加する'
+      })
+    });
+  });
+
+  await page.goto('/');
+  await page.getByLabel('Input text').fill(inputText);
+  await page.getByRole('radio', { name: 'tasks' }).check();
+  await page.getByRole('button', { name: 'Run' }).click();
+
+  await expect(page.getByText('- API仕様を確認する\n- テストを追加する')).toBeVisible();
+  await expect(page.getByRole('alert')).toHaveCount(0);
+});
