@@ -64,3 +64,10 @@ npm run test:e2e
 ```bash
 npm run lint
 ```
+
+
+## E2E Test Strategy
+
+- Default E2E (`npm run test:e2e`) uses API-mocked scenarios and excludes tests tagged with `@real-api` to keep CI stable.
+- Real API E2E (`npm run test:e2e:real-api`) targets only `@real-api` tests and requires `OPENAI_API_KEY`.
+- GitHub Actions can run real API E2E manually from `workflow_dispatch` with `run_real_api_e2e=true`.

@@ -103,10 +103,14 @@ export async function POST(request: Request) {
     const result = await requestAiResult(text, mode as Mode);
     return NextResponse.json({ result }, { status: 200 });
   } catch (error) {
-    console.error('[POST /api/agent] AI processing failed.', error);
-    return NextResponse.json(
-      { error: 'AI processing failed. Please try again later.' },
-      { status: 500 }
+    console.error(
+      '[POST /api/agent] AI processing failed.',
+      {
+        mode,
+        textLength: text.trim().length,
+        errorMessage
+      },
+      error
     );
   }
 }

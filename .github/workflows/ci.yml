@@ -34,6 +34,6 @@ jobs:
         run: npm run build
 
       - name: Run test
-        env:
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_real_api_e2e == 'true' }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: npm run test
