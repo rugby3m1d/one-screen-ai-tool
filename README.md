@@ -28,7 +28,9 @@ npm run build
 npm run start
 ```
 
-## As-Isテスト
+## テスト
+
+### As-Isテスト
 
 現状機能の維持確認用に、E2Eに近いAs-Isテストを用意しています。
 
@@ -41,6 +43,21 @@ npm run test:as-is
 - トップ画面の主要UIが表示されること
 - `/api/agent` の入力バリデーション
 - `OPENAI_API_KEY` 未設定時のエラーハンドリング
+
+### Playwright E2Eテスト
+
+Playwright を使ったブラウザE2Eテストを追加しています。
+
+```bash
+npm install
+npx playwright install chromium
+npm run test:e2e
+```
+
+検証内容:
+
+- トップ画面の主要UI要素表示
+- 実行ボタン押下時のエラーメッセージ表示
 
 ## Lint
 
